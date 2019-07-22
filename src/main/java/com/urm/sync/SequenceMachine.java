@@ -5,5 +5,4 @@ package com.urm.sync;
  */
 public interface SequenceMachine {
   String getSequenceId();
-
 }

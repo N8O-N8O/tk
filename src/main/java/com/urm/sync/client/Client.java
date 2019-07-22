@@ -4,6 +4,8 @@ import static com.urm.Constants.MAX_RECONNECT_TIMES;
 import static com.urm.Constants.ROLE_SLAVE;
 
 import com.urm.StandardApplicationContext;
+import com.urm.arbit.Arbit;
+import com.urm.arbit.Arbiter;
 import com.urm.sync.client.handler.HeartBeatClientHandler;
 import com.urm.sync.client.handler.SyncInfoHandler;
 import com.urm.sync.codec.FacadeDecoder;
@@ -26,15 +28,39 @@ import java.util.concurrent.TimeUnit;
 
 public class Client extends Thread {
 
-  public static void main(String[] args) {
-    new Client().start();
+  private int port = 8099;
+  private String host = "127.0.0.1";
+  private Arbit arbited;
+
+  public Client setHostAndPort(int port, String host) {
+    this.port = port;
+    this.host = host;
+    return this;
+  }
+
+  public Client setArbited(Arbit arbited){
+    this.arbited = arbited;
+    return this;
+  }
+
+  private Client() {
+
+  }
+
+
+  private static class ClientHolder {
+
+    private static final Client client = new Client();
+  }
+
+  public Client getInstance() {
+    return ClientHolder.client;
   }
 
   @Override
   public void run() {
     try {
-      int port = 8080;
-      connect(port, "127.0.0.1");
+      connect(port, host);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -66,7 +92,7 @@ public class Client extends Thread {
                   .addLast("decoder", new FacadeEncoder())
                   .addLast("encoder", new FacadeDecoder())
                   .addLast("heartbeat", new HeartBeatClientHandler())
-                  .addLast("syncInfo",new SyncInfoHandler());
+                  .addLast("syncInfo", new SyncInfoHandler());
             }
           });
 
@@ -77,12 +103,7 @@ public class Client extends Thread {
       int counts = StandardApplicationContext.getInstance().getReconnectCounts();
       StandardApplicationContext.getInstance().setReconnectCounts(++counts);
       if (MAX_RECONNECT_TIMES < StandardApplicationContext.getInstance().getReconnectCounts()) {
-        System.out.println("发起仲裁，我退出啦!");
-        System.exit(0);
-        //TODO do arbit ,if no reply --> system.out
-        //               if let me out --> system.out
-        //               if let me to be single --> change my role single refresh context;
-        //
+        arbited.initiationArbitration(1000L,TimeUnit.MILLISECONDS,ROLE_SLAVE);
       }
     } finally {
       if (null != future) {

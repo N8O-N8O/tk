@@ -41,16 +41,12 @@ public class SyncMessageAdapter implements IAdapter<String, Object> {
     syncInfo.setTimestamp(Long.parseLong(SYNC_MESSAGE_DECODER.timestamp()));
     syncInfo.setExchId(SYNC_MESSAGE_DECODER.exchId());
     syncInfo.setStkId(SYNC_MESSAGE_DECODER.stkId());
-    syncInfo
-        .setClosePrice(BigDecimal.valueOf(Double.parseDouble(SYNC_MESSAGE_DECODER.closePrice())));
-    syncInfo.setNewPrice(BigDecimal.valueOf(Double.parseDouble(SYNC_MESSAGE_DECODER.newPrice())));
-    syncInfo.setMaxOrderPrice(
-        BigDecimal.valueOf(Double.parseDouble(SYNC_MESSAGE_DECODER.maxOrderPrice())));
-    syncInfo.setMinOrderPrice(
-        BigDecimal.valueOf(Double.parseDouble(SYNC_MESSAGE_DECODER.minOrderPrice())));
-    syncInfo.setKnockAvgPrice(
-        BigDecimal.valueOf(Double.parseDouble(SYNC_MESSAGE_DECODER.knockAvgPrice())));
-    syncInfo.setTotalMktKnockQty(Integer.parseInt(SYNC_MESSAGE_DECODER.totalMktKnockQty()));
+    syncInfo.setClosePrice(new BigDecimal(SYNC_MESSAGE_DECODER.closePrice()));
+    syncInfo.setNewPrice(new BigDecimal((SYNC_MESSAGE_DECODER.newPrice())));
+    syncInfo.setMaxOrderPrice(new BigDecimal(SYNC_MESSAGE_DECODER.maxOrderPrice()));
+    syncInfo.setMinOrderPrice(new BigDecimal(SYNC_MESSAGE_DECODER.minOrderPrice()));
+    syncInfo.setKnockAvgPrice(new BigDecimal(SYNC_MESSAGE_DECODER.knockAvgPrice()));
+    syncInfo.setTotalMktKnockQty(new BigDecimal(SYNC_MESSAGE_DECODER.totalMktKnockQty()));
 
     result.put(TEMPLATE_ID, templateId);
     result.put(SyncInfo.class.getSimpleName(), syncInfo);

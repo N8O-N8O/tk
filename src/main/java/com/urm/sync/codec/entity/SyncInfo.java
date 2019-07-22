@@ -51,7 +51,7 @@ public class SyncInfo implements Serializable {
   /**
    * 总成交数量
    */
-  private int totalMktKnockQty;
+  private BigDecimal totalMktKnockQty;
 
 
   public String getId() {
@@ -134,11 +134,11 @@ public class SyncInfo implements Serializable {
     this.knockAvgPrice = knockAvgPrice;
   }
 
-  public int getTotalMktKnockQty() {
+  public BigDecimal getTotalMktKnockQty() {
     return totalMktKnockQty;
   }
 
-  public void setTotalMktKnockQty(int totalMktKnockQty) {
+  public void setTotalMktKnockQty(BigDecimal totalMktKnockQty) {
     this.totalMktKnockQty = totalMktKnockQty;
   }
 

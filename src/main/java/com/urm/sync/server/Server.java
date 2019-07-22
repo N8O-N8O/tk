@@ -1,11 +1,12 @@
 package com.urm.sync.server;
 
+import com.urm.arbit.Arbit;
 import com.urm.sync.SequenceMachine;
-import com.urm.sync.codec.IAdapter;
 import com.urm.sync.codec.FacadeDecoder;
 import com.urm.sync.codec.FacadeEncoder;
-import com.urm.sync.codec.entity.SyncInfo;
+import com.urm.sync.codec.IAdapter;
 import com.urm.sync.codec.adapter.protocal.sbe.SyncMessageDecoder;
+import com.urm.sync.codec.entity.SyncInfo;
 import com.urm.sync.server.handler.HeartBeatServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -33,7 +34,8 @@ public class Server extends Thread {
   private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
   private static final int BOSS_GROUP_THREADS = 1;
   private SequenceMachine sequenceMachine;
-  private int port;
+  private int port = 8099;
+  private Arbit arbit;
 
   private Channel channel;
 
@@ -43,18 +45,20 @@ public class Server extends Thread {
 
   public static void main(String[] args) {
 
-    Server.getInstance().setPort(8080).setSequenceMachine(null).start();
+    Server.getInstance().setPort(8099).setSequenceMachine(null).start();
 
-    new Thread(()->{
-      try {
-        Thread.sleep(15000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      Server.getInstance().syncInfoToClient(null);
+  }
 
-    }).start();
+  public Arbit getArbit(){
+    if (this.arbit==null){
+      throw new RuntimeException("Server's Arbit must not null");
+    }
+    return this.arbit;
+  }
 
+  public Server setArbited(Arbit arbited){
+    this.arbit = arbited;
+    return this;
   }
 
   public Server setChannel(Channel channel) {
@@ -67,6 +71,7 @@ public class Server extends Thread {
     return this;
   }
 
+
   private static class ServerHolder {
 
     private static final Server SERVER = new Server();
@@ -77,7 +82,9 @@ public class Server extends Thread {
   }
 
   public Server setPort(int port) {
-    this.port = port;
+    if (port != 0) {
+      this.port = port;
+    }
     return this;
   }
 
@@ -86,6 +93,8 @@ public class Server extends Thread {
     EventLoopGroup bossGroup = new NioEventLoopGroup(BOSS_GROUP_THREADS);
     EventLoopGroup workerGroup = new NioEventLoopGroup();
     try {
+
+      HeartBeatServerHandler heartBeatServerHandler = new HeartBeatServerHandler(this);
       ServerBootstrap sbs = new ServerBootstrap()
           .group(bossGroup, workerGroup)
           .channel(NioServerSocketChannel.class)
@@ -98,7 +107,7 @@ public class Server extends Thread {
               pipeline.addLast(new IdleStateHandler(10, 1, 0, TimeUnit.SECONDS))
                   .addLast("decoder", new FacadeDecoder())
                   .addLast("encoder", new FacadeEncoder())
-                  .addLast("heartbeat", new HeartBeatServerHandler());
+                  .addLast("heartbeat", heartBeatServerHandler);
             }
           })
           // Specify the queue can accept the maximum number of links for 128
@@ -122,7 +131,7 @@ public class Server extends Thread {
     syncInfo.setId("1");
 //    syncInfo.setSequenceId(sequenceMachine.getSequenceId());
     syncInfo.setSequenceId("qwe");
-    syncInfo.setTotalMktKnockQty(10);
+    syncInfo.setTotalMktKnockQty(new BigDecimal("1203"));
     syncInfo.setKnockAvgPrice(BigDecimal.valueOf(Double.MAX_VALUE));
     syncInfo.setMinOrderPrice(BigDecimal.valueOf(Double.MAX_VALUE));
     syncInfo.setMaxOrderPrice(BigDecimal.valueOf(Double.MAX_VALUE));
